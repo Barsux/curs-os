@@ -8,6 +8,7 @@
     #include <sys/types.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
+    #include <arpa/inet.h>
     #include <cstdio>
     #include <cstdlib>
 
@@ -20,6 +21,7 @@
     #define PORT2 3388
     #define MAX_LISTENERS 16
     #define DEBUG_LISTENERS 1
+    #define IP "127.0.0.1"
 
     typedef uint64_t U64;
     typedef uint32_t U32;
@@ -37,5 +39,4 @@
 
     int getCursorPosition(int *pos);
     int getLastError(int &error);
-    int str2ip4(const char * dst, IP4 ip);
 #endif

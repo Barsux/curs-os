@@ -1,19 +1,5 @@
 #include "base.h"
 
-/* Фукнция переводит строку с IP-адресом в 32бита */
-int str2ip4 (const char * dst, IP4 ip)
-{
-    unsigned int byte0, byte1, byte2, byte3;
-    char fakeString[2];
-    if (sscanf(dst, "%u.%u.%u.%u%1s", &byte3, &byte2, &byte1, &byte0, fakeString) == 4)
-    {
-        if ((byte3 < 256) && (byte2 < 256) && (byte1 < 256) && (byte0 < 256))
-        {
-            ip  = (byte3 << 24) + (byte2 << 16) + (byte1 << 8) + byte0;
-            return 1;
-        }
-    }return 0;
-}
 
 /* Функция для 1-го сервера, принимает массив из двух целых. Заполняет его координатами курсора, X, Y. Возвращает: 1 удача, -1 - неудача */
 /* Незапирающая */
