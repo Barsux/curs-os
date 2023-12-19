@@ -1,11 +1,4 @@
 #include "client.h"
-#include "base.h"
-#include <arpa/inet.h>
-#include <cstdio>
-#include <cstdlib>
-#include <endian.h>
-#include <netinet/in.h>
-#include <sys/socket.h>
 
 #define RECV_INTERVAL 30
 
@@ -111,7 +104,7 @@ class Client{
 
 int main(){
     // TODO! Добавить выбор порта, а следственно и сервера.
-    Client client = Client(PORT1);
+    Client client = Client(PORT2);
     if(client.try_open() < 0){
         print("Ошибка подключения, выход...\n");
         exit(EXIT_FAILURE);

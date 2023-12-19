@@ -2,16 +2,39 @@
 #include "base.h"
 #include <pthread.h>
 #define CHECKINTERVAL 1
+#define data2(str) getLastError(str)
 
-pthread_mutex_t mutex;
+#ifdef __arm__
+int getCursorPosition(U8 * str) {
+  char ans[] = "Не поддерживается на данной платформе";
+  return snprintf((char*)str, DATA_SIZE, ans);
+}
+#else
+#include "X11/Xlib.h"
+int getCursorPosition(U8 * str) {
+    Display* display = XOpenDisplay(nullptr);
+    Window root = DefaultRootWindow(display);
+    Window child;
+    int rootX, rootY, winX, winY;
+    unsigned int mask;
+    if (XQueryPointer(display, root, &root, &child, &rootX, &rootY, &winX, &winY, &mask)) {
+        XCloseDisplay(display);
+        return snprintf((char*)str, DATA_SIZE, "Позиция курсора: x=%d y=%d", rootX, rootY);
+    } else {
+        return -1;
+    }
+    return -1;
+}
+#endif
+#define data1(str) getCursorPosition(str)
 
 bool message_handler(U8 * msg, U8 * request, U8 * res_1, U8 * res_2){
     bool first_changed = false;
     bool second_changed = false;
     struct packet *pack = (struct packet*)msg;
     if(!pack->is_request || pack->timestamp != 0) return false;
-    getCursorPosition(pack->data_first);
-    getLastError(pack->data_second);
+    data1(pack->data_first);
+    data2(pack->data_second);
     if(memcmp(res_1, pack->data_first, DATA_SIZE) != 0){
         if(pack->flag == RECV_FIRST_DATA || RECV_DATA) memcpy(res_1, pack->data_first, DATA_SIZE);
         first_changed = true;
@@ -46,12 +69,11 @@ void perform_packet(U8 * buff, data_flags flag){
     pck->flag = flag;
     memset(pck->data_first, 0, DATA_SIZE);
     memset(pck->data_second, 0, DATA_SIZE);
-    getCursorPosition(pck->data_first);
-    getLastError(pck->data_second);
+    data1(pck->data_first);
+    data2(pck->data_second);
     if(flag == RECV_FIRST_DATA)memset(pck->data_second, 0, DATA_SIZE);
     if(flag == RECV_SECOND_DATA)memset(pck->data_first, 0, DATA_SIZE);
     pck->timestamp = nanotime();
-    print("%llu", pck->timestamp);
 }
 
 void * client_listener(void * arg){
@@ -87,24 +109,20 @@ void * client_listener(void * arg){
         if(needRequest && status > 0 && FD_ISSET(sock, &write_fd_set)){
             int byteSize = send(sock, tx, BUFF_SIZE, 0);
             if (!byteSize) continue;
-            
             needRequest = false;
-            print("Ответил на запрос");
+            print("Отправил пакет %d Байт.", byteSize);
             memset(tx, 0, BUFF_SIZE);
         }
         if(nanotime() < event) continue;
         event = nanotime() + interval;
         memset(databuff, 0, DATA_SIZE);
-        getMemoryUsagePercentage(databuff);
-        printf("%s\n", databuff);
-        memset(databuff, 0, DATA_SIZE);
-        getCursorPosition(databuff);
+        data1(databuff);
         if(memcmp(res_1, databuff, DATA_SIZE) != 0){
             memcpy(res_1, databuff, DATA_SIZE);
             first_changed = true;
         }
         memset(databuff, 0, DATA_SIZE);
-        getLastError(databuff);
+        data2(databuff);
         if(memcmp(res_2, databuff, DATA_SIZE) != 0){
             memcpy(res_2, databuff, DATA_SIZE);
             second_changed = true;
@@ -185,7 +203,6 @@ class Server{
 
 
 int main(){
-    pthread_mutex_init(&mutex, NULL);
     Server * server = new Server();
     if(server->try_open() < 0){
         print("Ошибка инициализации, выход...");

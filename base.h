@@ -21,7 +21,10 @@
     #include <pthread.h>
 
     #ifdef __linux__
-        #include "X11/Xlib.h"
+        #ifdef __arm__
+        #else
+            
+        #endif
     #endif
 
     #define PORT1 3387

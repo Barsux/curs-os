@@ -4,27 +4,7 @@
 
 /* Функция для 1-го сервера, принимает массив из двух целых. Заполняет его координатами курсора, X, Y. Возвращает: 1 удача, -1 - неудача */
 /* Незапирающая */
-#ifdef __arm__
-int getCursorPosition(U8 * str) {
-  char ans[] = "Не поддерживается на данной платформе";
-  return snprintf((char*)str, DATA_SIZE, ans);
-}
-#else
-int getCursorPosition(U8 * str) {
-    Display* display = XOpenDisplay(nullptr);
-    Window root = DefaultRootWindow(display);
-    Window child;
-    int rootX, rootY, winX, winY;
-    unsigned int mask;
-    if (XQueryPointer(display, root, &root, &child, &rootX, &rootY, &winX, &winY, &mask)) {
-        XCloseDisplay(display);
-        return snprintf((char*)str, DATA_SIZE, "Позиция курсора: x=%d y=%d", rootX, rootY);
-    } else {
-        return -1;
-    }
-    return -1;
-}
-#endif
+
 
 /* Функция для 1-го сервера, возвращает последнюю ошибку. 1 удача, -1 - неудача */
 /* Незапирающая */
@@ -78,7 +58,7 @@ int getMemoryUsagePercentage(U8 * str) {
     fclose(file);
 
     long used_memory = total_memory - free_memory - buffers - cached;
-    double usage_percentage = ((used_memory * 100) / total_memory);
+    double usage_percentage = (double)used_memory * 100 / total_memory;
     snprintf((char*)str, DATA_SIZE, "Физическая память: %f %%", usage_percentage);
     return usage_percentage;
 }
