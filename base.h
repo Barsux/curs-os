@@ -2,6 +2,7 @@
 
     #define BASEH
 
+    #include <unistd.h>
     #include <stdio.h>
     #include <inttypes.h>
     #include <errno.h>
@@ -11,7 +12,13 @@
     #include <arpa/inet.h>
     #include <cstdio>
     #include <cstdlib>
-
+    #include <stdarg.h>
+    #include <stdlib.h>
+    #include <time.h>
+    #include <string.h>
+    #include <signal.h>
+    #include <bits/pthreadtypes.h>
+    #include <pthread.h>
 
     #ifdef __linux__
         #include "X11/Xlib.h"
@@ -22,6 +29,8 @@
     #define MAX_LISTENERS 16
     #define DEBUG_LISTENERS 1
     #define IP "127.0.0.1"
+    #define BUFF_SIZE 1500
+    #define DATA_SIZE 128
 
     typedef uint64_t U64;
     typedef uint32_t U32;
@@ -37,6 +46,30 @@
     typedef U8 MAC[6];
     typedef U32 IP4;
 
-    int getCursorPosition(int *pos);
-    int getLastError(int &error);
+    enum data_flags{
+        RECV_FIRST_DATA = 0x01,
+        RECV_SECOND_DATA = 0x02,
+        RECV_DATA = 0x03,
+    };
+
+    struct packet {
+        U64 timestamp;
+        bool is_request;
+        data_flags flag;
+        U8 data_first[DATA_SIZE];
+        U8 data_second[DATA_SIZE];   
+    };
+
+    struct TIME_INFO {
+        U32 YYYY, MM, DD, w, hh, mm, ss, ns;
+        TIME_INFO(): YYYY(), MM(), DD(), hh(), mm(),ss(), ns(), w() {}
+    };
+
+    int getCursorPosition(U8 * str);
+    int getLastError(U8 * str);
+    void print(char* fmt, ...);
+    U64 nanotime();
+    int utc2str(char* dst, int cbDstMax, U64 utc);
+    int getMemoryUsagePercentage(U8 * str);
+    int getSwapMemoryUsagePercentage(U8 * str);
 #endif
